@@ -141,7 +141,7 @@ flowchart TD
 
 ### 2. Hexagonal Architecture with New Feature
 
-![Hexagonal architecture](Hexagonal arch.jpg)
+![Hexagonal architecture](Hexagonal_arch.jpg)
 
 ---
 
