@@ -145,19 +145,20 @@ def mark_task_done(task_id):
 
 ```mermaid
 flowchart TD
-    A["Client sends\nPUT /tasks/{id}/done request"] --> B["HTTP Handler\nreceives the request"]
-    B --> C["Invokes\nUse Cases"]
-    C --> D["Use Cases executes\nmark_task_done(id)"]
-    D --> E["Invokes\nMemory Repo"]
-    E --> F["Memory Repo\nsearches task by ID"]
-    F -->|Task not found| G["Returns error:\n'Task with id {id} not found'"]
-    F -->|Task found| H["Returns task\nto Use Cases"]
-    H --> I["Use Cases set\ndone = True in Task entity"]
-    I --> J["Use Cases invokes\nMemory Repo"]
-    J --> K["Memory Repo\nupdates task in database"]
-    K --> L["Use Cases return\ntask to HTTP Handler"]
-    L --> M["Client receives success\nconfirmation with JSON response"]
-    G --> O["HTTP handler\nsends 404"]
+    A["Client sends PUT /tasks/{id}/done request"] --> B["HTTP Handler receives the request"]
+    B --> C["Invokes Use Cases"]
+    C --> D["Use Cases executes mark_task_done(id)"]
+    D --> E["Invokes Memory Repo"]
+    E --> F["Memory Repo searches task by ID"]
+    F -->|Task not found| G["Returns error:'Task with id {id} not found'"]
+    F -->|Task found| H["Returns task to Use Cases"]
+    H --> I["Use Cases set done = True in Task entity"]
+    I --> J["Use Cases invokes Memory Repo"]
+    J --> K["Memory Repo updates task in database"]
+    K --> L["Use Cases return task to HTTP Handler"]
+    L --> M["Client receives success confirmation with JSON response"]
+    G --> O["HTTP handler sends 404"]
+    
 ```
 
 ### 2. Hexagonal Architecture with New Feature
