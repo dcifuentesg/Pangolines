@@ -1,19 +1,77 @@
-# Class Activity - Hexagonal Architechture with Task application
+# Task Manager – Hexagonal Architecture
 
-## ✅ Requirements
+This service allows you to create and list tasks using a hexagonal architecture (ports and adapters). Business logic is decoupled from infrastructure details, such as the web framework or storage.
 
-- Modify the Task entity to support a "done" status.
-- Extend the input port (TaskInputPort) with the method `mark_task_done`.
-- Update the use case to implement the logic for marking a task as done.
-- Expand the repository to allow task lookup and updates.
-- Add a new HTTP REST endpoint to expose the functionality:
-  - **PUT** `/tasks/<id>/done`  
-    Marks the task identified by ID as completed.
+## 📋 Endpoints disponibles
+
+### ➕ Create a task
+
+Create a new task with a title.
+
+bash
+curl -X POST http://localhost:5000/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Aprender arquitectura hexagonal"}'
+
+
+### 📄 List all tasks
+
+Returns a list of all created tasks.
+
+bash
+curl http://localhost:5000/tasks
+
+
+### ✅ Mark task as done
+
+Marks a specific task as completed.
+
+bash
+curl -X PUT http://localhost:5000/tasks/<task_id>/done
+
+
+## Usage and Testing
+
+### Create a Task
+
+bash
+curl -X POST http://localhost:5000/tasks \
+     -H "Content-Type: application/json" \
+     -d '{"title": "Finish challenge"}'
+
+
+Expected response:
+
+json
+{
+  "id": "uuid-generated-id",
+  "title": "Finish challenge",
+  "done": false
+}
+
+
+### Mark a Task as Done
+
+Replace <id> with the ID returned when creating the task.
+
+bash
+curl -X PUT http://localhost:5000/tasks/<id>/done
+
+
+Expected response:
+
+json
+{
+  "id": "<id>",
+  "title": "Finish challenge",
+  "done": true
+}
+
 ---
 
-## Modifications Made
+# Modifications Made
 
-### 1. Modify the Domain
+## 1. Modify the Domain
 
 In `entities.py`, there is a method `mark_done()` in the `Task` entity to change the `done` status to `True`.
 
@@ -28,7 +86,7 @@ class Task:
         self.done = True
 ```
 
-### 2. Extend the Input Port
+## 2. Extend the Input Port
 
 In `ports.py`, the abstract method was added:
 
@@ -36,7 +94,7 @@ In `ports.py`, the abstract method was added:
 def mark_task_done(self, task_id: str) -> Task: pass
 ```
 
-### 3. Update the Use Case
+## 3. Update the Use Case
 
 In `use_cases.py`, the logic for marking a task as done was implemented using the repository to find and update the task:
 
@@ -48,7 +106,7 @@ def mark_task_done(self, task_id: str) -> Task:
     return task
 ```
 
-### 4. Improve the Repository
+## 4. Improve the Repository
 
 In `memory_repo.py`, methods were added to find a task by ID and update it:
 
@@ -67,7 +125,7 @@ def update(self, task: Task) -> None:
     raise ValueError(f"Task with id {task.id} not found")
 ```
 
-### 5. Add New HTTP Endpoint
+## 5. Add New HTTP Endpoint
 
 In `http_handler.py`, a route was added to handle marking tasks as done:
 
@@ -81,48 +139,6 @@ def mark_task_done(task_id):
         return jsonify({"error": str(e)}), 404
 ```
 
----
-
-## Usage and Testing
-
-### Create a Task
-
-```bash
-curl -X POST http://localhost:5000/tasks \
-     -H "Content-Type: application/json" \
-     -d '{"title": "Finish challenge"}'
-```
-
-Expected response:
-
-```json
-{
-  "id": "uuid-generated-id",
-  "title": "Finish challenge",
-  "done": false
-}
-```
-
-### Mark a Task as Done
-
-Replace `<id>` with the ID returned when creating the task.
-
-```bash
-curl -X PUT http://localhost:5000/tasks/<id>/done
-```
-
-Expected response:
-
-```json
-{
-  "id": "<id>",
-  "title": "Finish challenge",
-  "done": true
-}
-```
-
----
-
 ## Flow Diagrams
 
 ### 1. "Mark Task as Done" Functionality Flow
@@ -130,13 +146,19 @@ Expected response:
 ```mermaid
 flowchart TD
     A["Client sends PUT /tasks/{id}/done request"] --> B["HTTP Handler receives the request"]
-    B --> C["Executes Use Case: mark_task_done(id)"]
-    C --> D["Repository searches task by ID"]
-    D -->|Task not found| E["Returns 404 error: 'Task not found'"]
-    D -->|Task found| F["Sets done=True in Task entity"]
-    F --> G["Repository updates task in database"]
-    G --> H["Returns JSON response with updated task"]
-    H --> I["Client receives success confirmation"]
+    B --> C["Invokes Use Cases"]
+    C --> D["Use Cases executes mark_task_done(id)"]
+    D --> E["Invokes Memory Repo"]
+    E --> F["Memory Repo searches task by ID"]
+    F -->|Task not found| G["Returns error:'Task with id {id} not found'"]
+    F -->|Task found| H["Returns task to Use Cases"]
+    H --> I["Use Cases set done = True in Task entity"]
+    I --> J["Use Cases invokes Memory Repo"]
+    J --> K["Memory Repo updates task in database"]
+    K --> L["Use Cases return task to HTTP Handler"]
+    L --> M["Client receives success confirmation with JSON response"]
+    G --> O["HTTP handler sends 404"]
+    
 ```
 
 ### 2. Hexagonal Architecture with New Feature
@@ -145,6 +167,6 @@ flowchart TD
 
 ---
 
-## Conclusion
+# Conclusion
 
 This enhancement allows updating task status via API while respecting hexagonal architecture, ensuring modularity and scalability.
